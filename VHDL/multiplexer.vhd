@@ -14,4 +14,13 @@ end multiplexer;
 
 architecture synth of multiplexer is
 begin
+	process(i0, i1, i2, i3, sel) is
+	begin
+		case sel is
+			when "00" => o <= i0;
+			when "01" => o <= i1;
+			when "10" => o <= i2;
+			when others => o <= i3;
+		end case;
+	end process;
 end synth;

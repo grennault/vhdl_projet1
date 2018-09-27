@@ -15,4 +15,15 @@ end comparator;
 
 architecture synth of comparator is
 begin
+	process(a_31, b_31, diff_31, carry, zero, op) is
+	begin
+		case op is
+			when "001" => r <= (a_31 and not(b_31)) or ((a_31 xnor b_31) and (diff_31 or zero));
+			when "010" => r <= (not(a_31) and b_31) or ((a_31 xnor b_31) and (not(diff_31 or zero)));
+			when "011" => r <= not(zero);
+			when "101" => r <= not(carry) or zero;
+			when "110" => r <= not(zero) and carry;
+			when others => r <= zero;
+		end case;
+	end process;
 end synth;
