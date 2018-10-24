@@ -37,7 +37,7 @@ entity controller is
 end controller;
 
 architecture synth of controller is
-    type State_Type is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP, BRANCH, CALL, CALLR, JMP, JMPI);
+    type State_Type is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP, BRANCH, CALL, CALLR, JUMP, JUMPI);
     signal state : State_Type;
     signal next_state : State_Type;
     signal int_op : Integer;
