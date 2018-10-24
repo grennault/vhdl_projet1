@@ -19,7 +19,7 @@ end PC;
 architecture synth of PC is
 	signal r : std_logic_vector(15 downto 0); 
 begin
-	process (clk)	
+	process (clk) is
 	begin
 		if (reset_n = '1') then 
 			addr <= (31 downto 0 => '0');
