@@ -35,64 +35,136 @@ entity controller is
         op_alu     : out std_logic_vector(5 downto 0)
     );
 end controller;
+
 architecture synth of controller is
-type State_Type is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP);
-signal state : State_Type;
-signal int_op : Integer;
-signal int_opx : Integer;
+    type State_Type is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP, BRANCH, CALL, CALLR, JMP, JMPI);
+    signal state : State_Type;
+    signal next_state : State_Type;
+    signal int_op : Integer;
+    signal int_opx : Integer;
 begin
 	int_op <= to_integer(unsigned(op));
-	int_opx <= to_integer(unsigned(opx));
+    int_opx <= to_integer(unsigned(opx));
+    
 	process (op, opx) 
 	begin
-	case int_op is 
-	when 16#04# => op_alu <= "000000";
-	when 16#17# => op_alu <= "000000";
-	when 16#15# => op_alu <= "000000";
-	when OTHERS => case int_opx is 
-		when 16#0E# => op_alu <= "100001";
-		when 16#1B# => op_alu <= "110011";
-		when OTHERS => op_alu <= "UUUUUU";
-		end case;
-	end case;
-	end process;
-	
-	process (clk, reset_n)
-	begin
-	if (reset_n = '1') then state <= FETCH1;
-	elsif rising_edge(clk) then 
-	case state is 
-		when FETCH1 =>  read <= '1';
-				state <= FETCH2;
-		when FETCH2 =>  pc_en <= '1';
-				state <= DECODE;
-		when DECODE =>  case int_op is
-					when 16#15# => state <= STORE;
-					when 16#17# => state <= LOAD1;
-					when 16#04# => state <= I_OP;
-					when OTHERS => case int_opx is 
-						when 16#34# => state <= BREAK;
-						when OTHERS => state <= R_OP;
-						end case;
-					end case;
-		when R_OP => sel_b <= '1';
-				     sel_rC <= '1';
-				     rf_wren <= '1';
-				     state <= FETCH1;
-		when STORE =>   write <= '1';
-				sel_b <= '1';
-				state <= FETCH1;
-		when LOAD1 =>   sel_addr <= '1';
-				read <= '1';
-				state <= LOAD2;
-		when LOAD2 =>   rf_wren <= '1';
-				sel_mem <= '1';
-				state <= FETCH1;
-		when I_OP => 	rf_wren <= '1';
-				imm_signed <= '1';
-				state <= FETCH1;
-		when OTHERS => 
-		end case;
-  	end if;
+        case int_op is 
+            when 16#04# => op_alu <= "000000";
+            when 16#17# => op_alu <= "000000";
+            when 16#15# => op_alu <= "000000";
+            when 16#0E# => op_alu <= "011001";
+            when 16#16# => op_alu <= "011010";
+            when 16#1E# => op_alu <= "011011";
+            when 16#26# => op_alu <= "011100";
+            when 16#2E# => op_alu <= "011101";
+            when 16#36# => op_alu <= "011110";
+            when OTHERS => 
+                case int_opx is 
+                    when 16#0E# => op_alu <= "100001";
+                    when 16#1B# => op_alu <= "110011";
+                    when OTHERS => 
+                end case;
+        end case;
+    end process;
+        
+    process (clk, reset_n)
+    begin
+        if (reset_n = '1') then 
+            state <= FETCH1;
+        elsif rising_edge(clk) then 
+            state <= next_state;
+        end if;
+    end process;
+
+    process (state, next_state)
+    begin
+        case state is 
+            when FETCH1 => 
+                read <= '1';
+                next_state <= FETCH2;
+                    
+            when FETCH2 =>  
+                pc_en <= '1';
+                next_state <= DECODE;
+                    
+            when DECODE =>  
+                case int_op is
+                    when 16#15# => next_state <= STORE;
+                    when 16#17# => next_state <= LOAD1;
+                    when 16#04# => next_state <= I_OP;
+                    when 16#3A# => 
+                        case int_opx is 
+                            when 16#34# => next_state <= BREAK;
+                            when 16#00# => next_state <= CALLR;
+                            when 16#0D# => next_state <= JUMP;
+                            when 16#05# => next_state <= JUMP;
+                            when OTHERS => next_state <= R_OP;
+                        end case;
+                    when 16#00# => next_state <= CALL;
+                    when 16#01# => next_state <= JUMPI;
+                    when others => next_state <= BRANCH;
+                end case;
+                
+            when R_OP =>
+                sel_b <= '1';
+                sel_rC <= '1';
+                rf_wren <= '1';
+                next_state <= FETCH1;
+                    
+            when STORE =>   
+                write <= '1';
+                sel_b <= '1';
+                next_state <= FETCH1;
+                    
+            when LOAD1 =>   
+                sel_addr <= '1';
+                read <= '1';
+                imm_signed <= '1';
+                next_state <= LOAD2;
+                    
+            when LOAD2 =>   
+                rf_wren <= '1';
+                sel_mem <= '1';
+                next_state <= FETCH1;
+                    
+            when I_OP => 
+                rf_wren <= '1';
+                imm_signed <= '1';
+                next_state <= FETCH1;
+
+            when BRANCH =>
+                branch_op <= '1';
+                sel_b <= '1';
+                pc_add_imm <= '1';
+                next_state <= FETCH1;
+
+            when CALL =>
+                rf_wren <= '1';
+                pc_en <= '1';
+                pc_sel_imm <= '1';
+                sel_pc <= '1';
+                sel_ra <= '1';
+                next_state <= FETCH1;
+
+            when CALLR =>
+                rf_wren <= '1';
+                pc_en <= '1';
+                pc_sel_a <= '1';
+                sel_pc <= '1';
+                sel_ra <= '1';
+                next_state <= FETCH1;
+            
+            when JUMP => 
+                pc_en <= '1';
+                pc_sel_a <= '1';
+                next_state <= FETCH1;
+
+            when JUMPI =>
+                pc_en <= '1';
+                pc_sel_imm <= '1';
+                next_state <= FETCH1;
+                    
+            when OTHERS => 
+        end case;
 	end process;
 end synth;
