@@ -265,7 +265,6 @@ begin
                 sel_addr <= '0';
                 sel_b <= '0';
                 sel_mem <= '0';
-                pc_en <= '0';
                 pc_add_imm <= '0';
                 sel_pc <= '0';
                 sel_ra <= '0';
