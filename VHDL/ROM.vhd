@@ -20,7 +20,7 @@ architecture synth of ROM is
     type mem_type is array(0 to 1023) of std_logic_vector(31 downto 0);
     signal mem_block : mem_type;
 begin
-    process(buff, address, mem_block, clk, addr, data, cs, read) is
+    process(buff) is
     begin
         if(buff = '1') then
             rddata <= mem_block(addr);
@@ -29,7 +29,7 @@ begin
         end if;
     end process;
 
-    process(buff, address, mem_block, clk, addr, data, cs, read) is
+    process(clk) is
     begin
         if(rising_edge(clk)) then
         	if((cs and read) = '1') then

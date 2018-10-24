@@ -19,17 +19,17 @@ end PC;
 architecture synth of PC is
 	signal r : std_logic_vector(16 downto 0); 
 begin
-	r(16) <= '0';
 	process (clk)	
 	begin
-	if (reset_n = '1') then addr <= (31 downto 0 => '0');
-				r <= (16 downto 0 => '0');
-	end if;
-	if (rising_edge(clk)) then
-		if (en = '1') then 
-		r <= std_logic_vector(to_unsigned(to_integer(unsigned(r))+4, 16));
-		addr <= (31 downto 16 => '0') & r(15 downto 2) & "00";
+		if (reset_n = '1') then 
+			addr <= (31 downto 0 => '0');
+			r <= (16 downto 0 => '0');
+		
+		elsif (rising_edge(clk)) then
+			if (en = '1') then 
+				r <= std_logic_vector('0' & to_unsigned(to_integer(unsigned(r))+4, 16));
+				addr <= (31 downto 16 => '0') & r(15 downto 2) & "00";
+			end if;
 		end if;
-	end if;
 	end process;
 end synth;

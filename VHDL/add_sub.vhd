@@ -24,10 +24,9 @@ begin
 			when '1' => temp <= std_logic_vector(signed('0' & a) + signed(not('0' & b)) + 1);
 			when others => temp <= (others => 'U');
 		end case;
-		
 	end process;
 	
-	zero <= '1' when (temp = (31 downto 0 => '0')) else '0';
+	zero <= '1' when (temp(31 downto 0) = (31 downto 0 => '0')) else '0';
 	r <= temp(31 downto 0);
 	carry <= temp(32);
 end synth;
