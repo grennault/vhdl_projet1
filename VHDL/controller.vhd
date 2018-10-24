@@ -46,7 +46,7 @@ begin
 	int_op <= to_integer(unsigned(op));
     int_opx <= to_integer(unsigned(opx));
     
-	process (op, opx) is
+	process (op, opx) 
 	begin
         case int_op is 
             when 16#04# => op_alu <= "000000";
@@ -67,7 +67,7 @@ begin
         end case;
     end process;
         
-    process (clk, reset_n) is
+    process (clk, reset_n)
     begin
         if (reset_n = '1') then 
             state <= FETCH1;
@@ -76,22 +76,35 @@ begin
         end if;
     end process;
 
-    process (state, next_state) is
+    process (state, next_state)
     begin
+
+        branch_op <= '0';
+        imm_signed <= '0';
+        ir_en <= '0';
+        pc_add_imm <= '0';
+        pc_en <= '0';
+        pc_sel_a <= '0';
+        pc_sel_imm <= '0';
+        rf_wren <= '0';
+        sel_addr <= '0';
+        sel_b <= '0';
+        sel_mem <= '0';
+        sel_pc <= '0';
+        sel_ra <= '0';
+        sel_rC <= '0';
+        read <= '0';
+        write <= '0';
 
         case state is 
             when FETCH1 => 
                 read <= '1';
                 next_state <= FETCH2;
-                
+                    
             when FETCH2 =>  
                 pc_en <= '1';
-                ir_en <= '1';
-
-                read <= '0';
-
                 next_state <= DECODE;
-                
+                    
             when DECODE =>  
                 case int_op is
                     when 16#15# => next_state <= STORE;
@@ -109,87 +122,39 @@ begin
                     when 16#01# => next_state <= JUMPI;
                     when others => next_state <= BRANCH;
                 end case;
-            
-                read <= '0';
-                pc_en <= '0';
-                ir_en <= '0';
-
+                
             when R_OP =>
                 sel_b <= '1';
                 sel_rC <= '1';
                 rf_wren <= '1';
-
-                pc_en <= '0';
-                read <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
                     
-            when STORE =>   
+            when STORE =>
+                sel_addr <= '1';
                 write <= '1';
                 sel_b <= '1';
-                imm_signed <= '1';
-
-                rf_wren <= '0';
-                sel_mem <= '0';
-                pc_en <= '0';
-                sel_rC <= '0';
-                read <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
                     
             when LOAD1 =>   
                 sel_addr <= '1';
                 read <= '1';
                 imm_signed <= '1';
-
-                rf_wren <= '0';
-                pc_en <= '0';
-                sel_rC <= '0';
-                ir_en <= '0';
-
                 next_state <= LOAD2;
                     
             when LOAD2 =>   
                 rf_wren <= '1';
                 sel_mem <= '1';
-
-                sel_addr <= '0';
-                sel_b <= '0';
-                pc_en <= '0';
-                sel_rC <= '0';
-                ir_en <= '0';
-                read <= '0';
-                imm_signed <= '0';
-
                 next_state <= FETCH1;
                     
             when I_OP => 
                 rf_wren <= '1';
                 imm_signed <= '1';
-		
-                pc_en <= '0';
-                read <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
 
             when BRANCH =>
                 branch_op <= '1';
                 sel_b <= '1';
                 pc_add_imm <= '1';
-
-                rf_wren <= '0';
-                sel_addr <= '0';
-                sel_mem <= '0';
-                pc_en <= '0';
-                sel_rC <= '0';
-                read <= '0';
-                write <= '0';
-                imm_signed <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
 
             when CALL =>
@@ -198,19 +163,6 @@ begin
                 pc_sel_imm <= '1';
                 sel_pc <= '1';
                 sel_ra <= '1';
-
-                branch_op <= '0';
-                sel_addr <= '0';
-                sel_b <= '0';
-                sel_mem <= '0';
-                pc_add_imm <= '0';
-                sel_rC <= '0';
-                read <= '0';
-                write <= '0';
-                op_alu <= (5 downto 0 => '0');
-                imm_signed <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
 
             when CALLR =>
@@ -219,62 +171,16 @@ begin
                 pc_sel_a <= '1';
                 sel_pc <= '1';
                 sel_ra <= '1';
-
-                branch_op <= '0';
-                sel_addr <= '0';
-                sel_b <= '0';
-                sel_mem <= '0';
-                pc_sel_imm <= '0';
-                pc_add_imm <= '0';
-                sel_rC <= '0';
-                read <= '0';
-                write <= '0';
-                op_alu <= (5 downto 0 => '0');
-                imm_signed <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
             
             when JUMP => 
                 pc_en <= '1';
                 pc_sel_a <= '1';
-
-                branch_op <= '0';
-                rf_wren <= '0';
-                sel_addr <= '0';
-                sel_b <= '0';
-                sel_mem <= '0';
-                pc_sel_imm <= '0';
-                sel_pc <= '0';
-                sel_ra <= '0';
-                sel_rC <= '0';
-                read <= '0';
-                write <= '0';
-                op_alu <= (5 downto 0 => '0');
-                imm_signed <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
 
             when JUMPI =>
                 pc_en <= '1';
                 pc_sel_imm <= '1';
-
-                branch_op <= '0';
-                rf_wren <= '0';
-                sel_addr <= '0';
-                sel_b <= '0';
-                sel_mem <= '0';
-                pc_add_imm <= '0';
-                sel_pc <= '0';
-                sel_ra <= '0';
-                sel_rC <= '0';
-                read <= '0';
-                write <= '0';
-                op_alu <= (5 downto 0 => '0');
-                imm_signed <= '0';
-                ir_en <= '0';
-
                 next_state <= FETCH1;
                     
             when OTHERS => 
