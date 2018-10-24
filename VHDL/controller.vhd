@@ -79,22 +79,8 @@ begin
     process (state, next_state)
     begin
 
-        branch_op <= '0';
-        imm_signed <= '0';
-        ir_en <= '0';
-        pc_add_imm <= '0';
-        pc_en <= '0';
-        pc_sel_a <= '0';
-        pc_sel_imm <= '0';
-        rf_wren <= '0';
-        sel_addr <= '0';
-        sel_b <= '0';
-        sel_mem <= '0';
-        sel_pc <= '0';
-        sel_ra <= '0';
-        sel_rC <= '0';
-        read <= '0';
-        write <= '0';
+
+ 
 
         case state is 
             when FETCH1 => 
@@ -103,8 +89,10 @@ begin
                     
             when FETCH2 =>  
                 pc_en <= '1';
-		ir_en <= '1';
                 next_state <= DECODE;
+		ir_en <= '1';
+
+		read <= '0';
                     
             when DECODE =>  
                 case int_op is
@@ -123,12 +111,21 @@ begin
                     when 16#01# => next_state <= JUMPI;
                     when others => next_state <= BRANCH;
                 end case;
-                
+               
+		 read <= '0';
+		pc_en <= '0';
+		ir_en <= '0';
+
             when R_OP =>
                 sel_b <= '1';
                 sel_rC <= '1';
                 rf_wren <= '1';
                 next_state <= FETCH1;
+		
+		
+		pc_en <= '0';
+		read <= '0';
+		ir_en <= '0';
                     
             when STORE =>   
                 write <= '1';
@@ -140,16 +137,34 @@ begin
                 read <= '1';
                 imm_signed <= '1';
                 next_state <= LOAD2;
+		
+		rf_wren <= '0';
+		pc_en <= '0';
+		sel_rC <= '0';
+		ir_en <= '0';
                     
             when LOAD2 =>   
                 rf_wren <= '1';
                 sel_mem <= '1';
                 next_state <= FETCH1;
+
+		sel_addr <= '0';
+		sel_b <= '0';
+		pc_en <= '0';
+		sel_rC <= '0';
+		ir_en <= '0';
+		read <= '0';
+		imm_signed <= '0';
+		
                     
             when I_OP => 
                 rf_wren <= '1';
                 imm_signed <= '1';
                 next_state <= FETCH1;
+		
+		pc_en <= '0';
+		read <= '0';
+		ir_en <= '0';
 
             when BRANCH =>
                 branch_op <= '1';
