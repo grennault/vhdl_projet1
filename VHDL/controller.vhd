@@ -78,6 +78,24 @@ begin
 
     process (state, next_state)
     begin
+
+        branch_op <= '0';
+        imm_signed <= '0';
+        ir_en <= '0';
+        pc_add_imm <= '0';
+        pc_en <= '0';
+        pc_sel_a <= '0';
+        pc_sel_imm <= '0';
+        rf_wren <= '0';
+        sel_addr <= '0';
+        sel_b <= '0';
+        sel_mem <= '0';
+        sel_pc <= '0';
+        sel_ra <= '0';
+        sel_rC <= '0';
+        read <= '0';
+        write <= '0';
+
         case state is 
             when FETCH1 => 
                 read <= '1';
