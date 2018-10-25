@@ -17,9 +17,10 @@ entity PC is
 end PC;
 
 architecture synth of PC is
-	signal r : std_logic_vector(15 downto 0); 
+	signal r : std_logic_vector(15 downto 0);
+	signal temp : std_logic_vector(15 downto 0);
 begin
-	process (clk) is
+	process (clk)	
 	begin
 		if (reset_n = '1') then 
 			addr <= (31 downto 0 => '0');
@@ -28,9 +29,12 @@ begin
 		elsif (rising_edge(clk)) then
 			if (en = '1') then
 				if (add_imm = '1') then
-					r <= std_logic_vector(unsigned(r) + unsigned(imm(15 downto 2) & "00"), 16));
+					r <= std_logic_vector(unsigned(r) + unsigned(imm));
+				elsif (sel_imm = '1') then
+					temp <= imm(12 downto 0) & "00";
+					r <= std_logic_vector(unsigned(r) + unsigned(temp));
 				elsif (sel_a = '1') then
-					r <= std_logic_vector(unsigned(r) + unsigned(a), 16));
+					r <= std_logic_vector(unsigned(r) + unsigned(a));
 				else
 					r <= std_logic_vector(to_unsigned(to_integer(unsigned(r)) + 4, 16));
 				end if;

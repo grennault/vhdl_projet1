@@ -37,39 +37,59 @@ entity controller is
 end controller;
 
 architecture synth of controller is
-    type State_Type is (FETCH1, FETCH2, DECODE, R_OP, STORE, BREAK, LOAD1, LOAD2, I_OP, BRANCH, CALL, CALLR, JUMP, JUMPI);
+    type State_Type is (
+        FETCH1, 
+        FETCH2, 
+        DECODE, 
+        R_OP, 
+        STORE, 
+        BREAK, 
+        LOAD1, 
+        LOAD2, 
+        I_OP, 
+        BRANCH, 
+        CALL, 
+        CALLR, 
+        JUMP, 
+        JUMPI
+    );
     signal state : State_Type;
     signal next_state : State_Type;
     signal int_op : Integer;
     signal int_opx : Integer;
 begin
-	int_op <= to_integer(unsigned(op));
-    int_opx <= to_integer(unsigned(opx));
     
-	process (op, opx) 
+	process (clk, op, opx) 
 	begin
-        case int_op is 
-            when 16#04# => op_alu <= "000000";
-            when 16#17# => op_alu <= "000000";
-            when 16#15# => op_alu <= "000000";
-            when 16#0E# => op_alu <= "011001";
-            when 16#16# => op_alu <= "011010";
-            when 16#1E# => op_alu <= "011011";
-            when 16#26# => op_alu <= "011100";
-            when 16#2E# => op_alu <= "011101";
-            when 16#36# => op_alu <= "011110";
-            when OTHERS => 
+        int_op <= to_integer(unsigned(op));
+        int_opx <= to_integer(unsigned(opx));
+
+        case int_op is
+            -- I_TYPE
+            when 16#04# => op_alu <= "000" & op(5 downto 3);
+            when 16#17# => op_alu <= "000" & op(5 downto 3);
+            when 16#15# => op_alu <= "000" & op(5 downto 3);
+            when 16#06# => op_alu <= "100" & op(5 downto 3);
+            when 16#0E# => op_alu <= "011" & op(5 downto 3);
+            when 16#16# => op_alu <= "011" & op(5 downto 3);
+            when 16#1E# => op_alu <= "011" & op(5 downto 3);
+            when 16#26# => op_alu <= "011" & op(5 downto 3);
+            when 16#2E# => op_alu <= "011" & op(5 downto 3);
+            when 16#36# => op_alu <= "011" & op(5 downto 3);
+            -- R_TYPE
+            when 16#3A# => 
                 case int_opx is 
-                    when 16#0E# => op_alu <= "100001";
-                    when 16#1B# => op_alu <= "110011";
-                    when OTHERS => 
+                    when 16#0E# => op_alu <= "100" & opx(5 downto 3);
+                    when 16#1B# => op_alu <= "110" & opx(5 downto 3);
+                    when OTHERS =>
                 end case;
+            when OTHERS =>
         end case;
     end process;
         
     process (clk, reset_n)
     begin
-        if (reset_n = '1') then 
+        if (reset_n = '0') then 
             state <= FETCH1;
         elsif rising_edge(clk) then 
             state <= next_state;
@@ -79,23 +99,6 @@ begin
     process (state, next_state)
     begin
 
-        branch_op <= '0';
-        imm_signed <= '0';
-        ir_en <= '0';
-        pc_add_imm <= '0';
-        pc_en <= '0';
-        pc_sel_a <= '0';
-        pc_sel_imm <= '0';
-        rf_wren <= '0';
-        sel_addr <= '0';
-        sel_b <= '0';
-        sel_mem <= '0';
-        sel_pc <= '0';
-        sel_ra <= '0';
-        sel_rC <= '0';
-        read <= '0';
-        write <= '0';
-
         case state is 
             when FETCH1 => 
                 read <= '1';
@@ -103,6 +106,7 @@ begin
                     
             when FETCH2 =>  
                 pc_en <= '1';
+                ir_en <= '1';
                 next_state <= DECODE;
                     
             when DECODE =>  
@@ -132,7 +136,7 @@ begin
             when STORE =>
                 sel_addr <= '1';
                 write <= '1';
-                sel_b <= '1';
+                imm_signed <= '1';
                 next_state <= FETCH1;
                     
             when LOAD1 =>   
