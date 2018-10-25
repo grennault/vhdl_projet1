@@ -71,7 +71,7 @@ begin
             when 16#04# => op_alu <= "000" & op(5 downto 3);
             when 16#17# => op_alu <= "000" & op(5 downto 3);
             when 16#15# => op_alu <= "000" & op(5 downto 3);
-	        when 16#06# => op_alu <= "100" & op(5 downto 3);
+	    when 16#06# => op_alu <= "100" & op(5 downto 3);
             when 16#0E# => op_alu <= "011" & op(5 downto 3);
             when 16#16# => op_alu <= "011" & op(5 downto 3);
             when 16#1E# => op_alu <= "011" & op(5 downto 3);
@@ -111,9 +111,9 @@ begin
                     when 16#1E# => op_alu <= "100" & opx(5 downto 3);
                     when 16#13# => op_alu <= "110" & opx(5 downto 3);
                     when 16#3B# => op_alu <= "110" & opx(5 downto 3);
-		            when OTHERS =>
+		    when OTHERS =>
                 end case;
-	        when OTHERS =>
+	    when OTHERS =>
         end case;
     end process;
         
