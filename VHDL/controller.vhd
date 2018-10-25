@@ -38,20 +38,22 @@ end controller;
 
 architecture synth of controller is
     type State_Type is (
-        FETCH1, 
-        FETCH2, 
-        DECODE, 
-        R_OP, 
-        STORE, 
-        BREAK, 
-        LOAD1, 
-        LOAD2, 
-        I_OP, 
-        BRANCH, 
-        CALL, 
-        CALLR, 
-        JUMP, 
-        JUMPI
+	FETCH1, 
+	FETCH2, 
+	DECODE, 
+	R_OP, 
+	STORE, 
+	BREAK, 
+	LOAD1, 
+	LOAD2, 
+	I_OP,
+	UI_OP,
+	BRANCH, 
+	CALL, 
+	CALLR, 
+	JUMP, 
+	JUMPI,
+	SHIFT
     );
     signal state : State_Type;
     signal next_state : State_Type;
@@ -59,39 +61,48 @@ architecture synth of controller is
     signal int_opx : Integer;
 begin
     
-	process (clk, op, opx) 
+	process (op, opx, clk) 
 	begin
         int_op <= to_integer(unsigned(op));
         int_opx <= to_integer(unsigned(opx));
 
         case int_op is
-            -- I_TYPE
+		-- I_TYPE
             when 16#04# => op_alu <= "000" & op(5 downto 3);
             when 16#17# => op_alu <= "000" & op(5 downto 3);
             when 16#15# => op_alu <= "000" & op(5 downto 3);
-            when 16#06# => op_alu <= "100" & op(5 downto 3);
+	        when 16#06# => op_alu <= "100" & op(5 downto 3);
             when 16#0E# => op_alu <= "011" & op(5 downto 3);
             when 16#16# => op_alu <= "011" & op(5 downto 3);
             when 16#1E# => op_alu <= "011" & op(5 downto 3);
             when 16#26# => op_alu <= "011" & op(5 downto 3);
             when 16#2E# => op_alu <= "011" & op(5 downto 3);
             when 16#36# => op_alu <= "011" & op(5 downto 3);
-	    when 16#0C# => op_alu <= "100" & op(5 downto 3);
-	    when 16#14# => op_alu <= "100" & op(5 downto 3);
-	    when 16#1C# => op_alu <= "100" & op(5 downto 3);
-	    when 16#08# => op_alu <= "011" & op(5 downto 3);
-	    when 16#10# => op_alu <= "011" & op(5 downto 3);
-	    when 16#18# => op_alu <= "011" & op(5 downto 3);
-	    when 16#20# => op_alu <= "011" & op(5 downto 3);
-	    when 16#28# => op_alu <= "011" & op(5 downto 3);
-	    when 16#30# => op_alu <= "011" & op(5 downto 3);
-
-            -- R_TYPE
+            when 16#0C# => op_alu <= "100" & op(5 downto 3);
+            when 16#14# => op_alu <= "100" & op(5 downto 3);
+            when 16#1C# => op_alu <= "100" & op(5 downto 3);
+            when 16#08# => op_alu <= "011" & op(5 downto 3);
+            when 16#10# => op_alu <= "011" & op(5 downto 3);
+            when 16#18# => op_alu <= "011" & op(5 downto 3);
+            when 16#20# => op_alu <= "011" & op(5 downto 3);
+            when 16#28# => op_alu <= "011" & op(5 downto 3);
+            when 16#30# => op_alu <= "011" & op(5 downto 3);
+		-- R_TYPE
             when 16#3A# => 
                 case int_opx is 
                     when 16#0E# => op_alu <= "100" & opx(5 downto 3);
                     when 16#1B# => op_alu <= "110" & opx(5 downto 3);
                     when 16#31# => op_alu <= "000" & opx(5 downto 3);
+                    when 16#12# => op_alu <= "110" & opx(5 downto 3);
+                    when 16#1A# => op_alu <= "110" & opx(5 downto 3);
+                    when 16#3A# => op_alu <= "110" & opx(5 downto 3);
+                    when 16#18# => op_alu <= "011" & opx(5 downto 3);
+                    when 16#20# => op_alu <= "011" & opx(5 downto 3);
+                    when 16#28# => op_alu <= "011" & opx(5 downto 3);
+                    when 16#30# => op_alu <= "011" & opx(5 downto 3);
+                    when 16#03# => op_alu <= "110" & opx(5 downto 3);
+                    when 16#0B# => op_alu <= "110" & opx(5 downto 3);
+                    when 16#02# => op_alu <= "110" & opx(5 downto 3);
                     when 16#39# => op_alu <= "001" & opx(5 downto 3);
                     when 16#08# => op_alu <= "011" & opx(5 downto 3);
                     when 16#10# => op_alu <= "011" & opx(5 downto 3);
@@ -100,14 +111,46 @@ begin
                     when 16#1E# => op_alu <= "100" & opx(5 downto 3);
                     when 16#13# => op_alu <= "110" & opx(5 downto 3);
                     when 16#3B# => op_alu <= "110" & opx(5 downto 3);
-                    when OTHERS =>
+		            when OTHERS =>
                 end case;
-            when OTHERS =>
+	        when OTHERS =>
         end case;
+    end process;
+        
+    process (clk, reset_n)
+    begin
+        if (reset_n = '0') then 
+            state <= FETCH1;
+        elsif rising_edge(clk) then 
+            state <= next_state;
+        end if;
     end process;
 
     process (state, next_state)
     begin
+
+	branch_op  <= '0';
+        -- immediate value sign extention
+        imm_signed <= '0';
+        -- instruction register enable
+        ir_en <= '0';
+        -- PC control signals
+        pc_add_imm <= '0';
+        pc_en      <= '0';
+        pc_sel_a   <= '0';
+        pc_sel_imm <= '0';
+        -- register file enable
+        rf_wren    <= '0';
+        -- multiplexers selections
+        sel_addr   <= '0';
+        sel_b      <= '0';
+        sel_mem    <= '0';
+        sel_pc     <= '0';
+        sel_ra     <= '0';
+        sel_rC     <= '0';
+        -- write memory output
+        read       <= '0';
+        write      <= '0';
 
         case state is 
             when FETCH1 => 
@@ -124,12 +167,26 @@ begin
                     when 16#15# => next_state <= STORE;
                     when 16#17# => next_state <= LOAD1;
                     when 16#04# => next_state <= I_OP;
+		    when 16#08# => next_state <= I_OP;
+		    when 16#10# => next_state <= I_OP;
+		    when 16#18# => next_state <= I_OP;
+		    when 16#20# => next_state <= I_OP;
+		    when 16#0C# => next_state <= UI_OP;
+		    when 16#14# => next_state <= UI_OP;
+		    when 16#1C# => next_state <= UI_OP;
+		    when 16#28# => next_state <= UI_OP;
+		    when 16#30# => next_state <= UI_OP;
                     when 16#3A# => 
                         case int_opx is 
                             when 16#34# => next_state <= BREAK;
-                            when 16#00# => next_state <= CALLR;
+                            when 16#00# => next_state <= CALL;
+                            when 16#1D# => next_state <= CALLR;
                             when 16#0D# => next_state <= JUMP;
                             when 16#05# => next_state <= JUMP;
+			    when 16#12# => next_state <= SHIFT;
+			    when 16#1A# => next_state <= SHIFT;
+			    when 16#3A# => next_state <= SHIFT;
+			    when 16#02# => next_state <= SHIFT;
                             when OTHERS => next_state <= R_OP;
                         end case;
                     when 16#00# => next_state <= CALL;
@@ -139,6 +196,12 @@ begin
                 
             when R_OP =>
                 sel_b <= '1';
+                sel_rC <= '1';
+                rf_wren <= '1';
+                next_state <= FETCH1;
+
+            when SHIFT =>
+                imm_signed <= '1';
                 sel_rC <= '1';
                 rf_wren <= '1';
                 next_state <= FETCH1;
@@ -163,6 +226,10 @@ begin
             when I_OP => 
                 rf_wren <= '1';
                 imm_signed <= '1';
+                next_state <= FETCH1;
+
+            when UI_OP =>
+                rf_wren <= '1';
                 next_state <= FETCH1;
 
             when BRANCH =>
