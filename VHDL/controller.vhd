@@ -76,24 +76,34 @@ begin
             when 16#26# => op_alu <= "011" & op(5 downto 3);
             when 16#2E# => op_alu <= "011" & op(5 downto 3);
             when 16#36# => op_alu <= "011" & op(5 downto 3);
+	    when 16#0C# => op_alu <= "100" & op(5 downto 3);
+	    when 16#14# => op_alu <= "100" & op(5 downto 3);
+	    when 16#1C# => op_alu <= "100" & op(5 downto 3);
+	    when 16#08# => op_alu <= "011" & op(5 downto 3);
+	    when 16#10# => op_alu <= "011" & op(5 downto 3);
+	    when 16#18# => op_alu <= "011" & op(5 downto 3);
+	    when 16#20# => op_alu <= "011" & op(5 downto 3);
+	    when 16#28# => op_alu <= "011" & op(5 downto 3);
+	    when 16#30# => op_alu <= "011" & op(5 downto 3);
+
             -- R_TYPE
             when 16#3A# => 
                 case int_opx is 
                     when 16#0E# => op_alu <= "100" & opx(5 downto 3);
                     when 16#1B# => op_alu <= "110" & opx(5 downto 3);
+                    when 16#31# => op_alu <= "000" & opx(5 downto 3);
+                    when 16#39# => op_alu <= "001" & opx(5 downto 3);
+                    when 16#08# => op_alu <= "011" & opx(5 downto 3);
+                    when 16#10# => op_alu <= "011" & opx(5 downto 3);
+                    when 16#06# => op_alu <= "100" & opx(5 downto 3);
+                    when 16#16# => op_alu <= "100" & opx(5 downto 3);
+                    when 16#1E# => op_alu <= "100" & opx(5 downto 3);
+                    when 16#13# => op_alu <= "110" & opx(5 downto 3);
+                    when 16#3B# => op_alu <= "110" & opx(5 downto 3);
                     when OTHERS =>
                 end case;
             when OTHERS =>
         end case;
-    end process;
-        
-    process (clk, reset_n)
-    begin
-        if (reset_n = '0') then 
-            state <= FETCH1;
-        elsif rising_edge(clk) then 
-            state <= next_state;
-        end if;
     end process;
 
     process (state, next_state)
