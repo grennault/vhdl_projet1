@@ -38,6 +38,7 @@ begin
 				end if;
 			end if;
 		end if;
-		addr <= (31 downto 16 => '0') & r(15 downto 2) & "00";
 	end process;
+
+	addr <= (31 downto 16 => '0') & r(15 downto 2) & "00";
 end synth;

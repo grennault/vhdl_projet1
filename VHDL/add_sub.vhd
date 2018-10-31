@@ -20,8 +20,8 @@ begin
 	process(a, b, sub_mode) is
 	begin
 		case sub_mode is
-			when '0' => temp <= std_logic_vector(signed('0' & a) + signed('0' & b));
-			when '1' => temp <= std_logic_vector(signed('0' & a) + signed(not('0' & b)) + 1);
+			when '0' => temp <= std_logic_vector((unsigned('0' & a) + unsigned(b)));
+			when '1' => temp <= std_logic_vector(unsigned('0' & a) + unsigned(not(b)) + 1);
 			when others => temp <= (others => 'U');
 		end case;
 	end process;

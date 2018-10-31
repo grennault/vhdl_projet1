@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 entity controller is
     port(
         clk        : in  std_logic;
@@ -72,7 +71,7 @@ begin
             when 16#04# => op_alu <= "000" & op(5 downto 3);
             when 16#17# => op_alu <= "000" & op(5 downto 3);
             when 16#15# => op_alu <= "000" & op(5 downto 3);
-	        when 16#06# => op_alu <= "100" & op(5 downto 3);
+	    when 16#06# => op_alu <= "100" & op(5 downto 3);
             when 16#0E# => op_alu <= "011" & op(5 downto 3);
             when 16#16# => op_alu <= "011" & op(5 downto 3);
             when 16#1E# => op_alu <= "011" & op(5 downto 3);
@@ -130,7 +129,7 @@ begin
     process (state, next_state)
     begin
 
-	    branch_op  <= '0';
+	branch_op  <= '0';
         -- immediate value sign extention
         imm_signed <= '0';
         -- instruction register enable
